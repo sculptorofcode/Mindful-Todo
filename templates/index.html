@@ -4,7 +4,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mindful Todo</title>
+    <title>Mindful Todo | Task Management App for Personal &amp; Professional Productivity</title>
+    <meta name="description"
+        content="Mindful Todo is a task management app designed to boost productivity, track tasks, and provide insightful analytics. Organize your tasks and manage your time effectively.">
+    <meta name="keywords"
+        content="task management, to-do list, productivity app, personal tasks, work tasks, analytics, task completion, todo app, task tracker">
+    <meta property="og:title" content="Mindful Todo | Task Management App for Productivity">
+    <meta property="og:description"
+        content="Boost your productivity and stay organized with Mindful Todo. Track tasks, view analytics, and stay on top of your work and personal goals.">
+    <meta property="og:image" content="static/logo/logo.png">
+    <meta property="og:url" content="https://github.com/CyberSaikat/Mindful-Todo">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Mindful Todo | Task Management App for Productivity">
+    <meta name="twitter:description"
+        content="Boost your productivity with Mindful Todo. Track tasks, set priorities, and analyze your task completion rates.">
+    <meta name="twitter:image" content="static/logo/logo.png">
+    <link rel="icon" href="static/logo/transparent-icon.png" type="image/x-icon">
     <link href="static/css/bootstrap.min.css" rel="stylesheet">
     <link href="static/css/animate.min.css" rel="stylesheet">
     <link href="static/css/jquery.datetimepicker.min.css" rel="stylesheet">
@@ -12,6 +27,23 @@
     <link href="static/css/custom.css" rel="stylesheet">
     <link href="static/css/all.min.css" rel="stylesheet">
     <link href="static/css/toastr.min.css" rel="stylesheet">
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "Mindful Todo",
+            "operatingSystem": "Web",
+            "applicationCategory": "Productivity",
+            "description": "Mindful Todo is a task management app that helps you track tasks, set priorities, and view detailed analytics to boost productivity.",
+            "url": "https://github.com/CyberSaikat/Mindful-Todo",
+            "image": "static/logo/logo.png",
+            "author": {
+                "@type": "Organization",
+                "name": "Mindful Todo Inc."
+            },
+            "keywords": "task management, to-do list, productivity, task tracker, analytics"
+        }
+    </script>
 </head>
 
 <body>
@@ -108,151 +140,6 @@
     <script src="static/js/jquery.datetimepicker.full.min.js"></script>
     <script src="static/js/toastr.min.js"></script>
     <script src="static/js/home.js"></script>
-    <script>
-        $(document).ready(function () {
-            // Initialize datetime picker
-            $('.datetimepicker').datetimepicker({
-                format: 'd-m-Y H:i',
-                step: 30,
-                mask: true
-            });
-
-            // Initialize DataTables with server-side processing
-            $('#taskTable').DataTable({
-                processing: true,
-                serverSide: true,
-                responsive: true,
-                ajax: {
-                    url: '/tasks', // The URL to fetch data
-                    type: 'GET',
-                    data: function (d) {
-                        // Optional: you can add filters here if needed, e.g.:
-                        // d.category = $('#filterCategory').val();
-                    }
-                },
-                columns: [
-                    { data: 'id', title: 'ID', visible: false },
-                    { data: 'sl_no', title: 'S.No', orderable: false },
-                    { data: 'name', title: 'Task', orderable: false },
-                    {
-                        data: 'category',
-                        title: 'Category',
-                        orderable: false,
-                        render: function (data, type, row) {
-                            if(row.priority === 'High') {
-                                return `<span class="badge bg-danger">${data} (${row.priority})</span>`;
-                            } else if(row.priority === 'Medium') {
-                                return `<span class="badge bg-warning text-black">${data} (${row.priority})</span>`;
-                            }
-                            return `<span class="badge bg-primary">${data} (${row.priority})</span>`;
-                        }
-                    },
-                    { data: 'due_date', title: 'Due Date', orderable: false },
-                    {
-                        data: 'id',
-                        title: 'Actions',
-                        orderable: false,
-                        render: function (data, type, row) {
-                            if(row.is_completed) {
-                                return `<button class="btn btn-sm btn-danger delete-task" data-task-id="${data}" title="Delete task"><i class="fa fa-trash"></i></button>`;
-                            }
-                            return `
-                                <div class="d-flex gap-2" role="group">
-                                    <button class="btn btn-sm btn-primary complete-task" data-task-id="${data}" title="Mark as complete"><i class="fa fa-check"></i></button>
-                                    <button class="btn btn-sm btn-danger delete-task" data-task-id="${data}" title="Delete task"><i class="fa fa-trash"></i></button>
-                                </div>
-                            `;
-                        }
-                    },
-                ],
-                rowCallback: function (row, data) {
-                    if (data.is_completed) {
-                        $(row).addClass('table-success');
-                    } else if (new Date(data.due_date) < new Date()) {
-                        $(row).addClass('table-danger');
-                    } else if (data.priority === 'high') {
-                        $(row).addClass('table-danger');
-                    } else if (data.priority === 'medium') {
-                        $(row).addClass('table-warning');
-                    } else {
-                        $(row).addClass('table-light');
-                    }
-                }
-            });
-
-            // Handle form submission to add a new task
-            $("#addTaskForm").submit(function (event) {
-                event.preventDefault();
-                $form = $(this);
-                var formData = {
-                    name: $("#taskName").val(),
-                    priority: $("#taskPriority").val(),
-                    category: $("#taskCategory").val(),
-                    due_date: $("#dueDate").val()
-                };
-
-                $.ajax({
-                    url: '/add',
-                    type: 'POST',
-                    data: formData,
-                    beforeSend: function () {
-                        $("#taskFeedback").html('');
-                        $form.find('button').prop('disabled', true);
-                    },
-                    success: function (response) {
-                        $("#taskName").val('');
-                        $("#taskPriority").val('low');
-                        $("#taskCategory").val('personal');
-                        $("#dueDate").val('');
-                        toastr.success(response.message);
-                        // Reload DataTable to reflect the new task
-                        $('#taskTable').DataTable().draw(false)
-                        rerender();
-                    },
-                    error: function (xhr, status, error) {
-                        var errorMsg = xhr.responseJSON ? xhr.responseJSON.error : "An error occurred.";
-                        toastr.error(errorMsg);
-                    },
-                    complete: function () {
-                        $form.find('button').prop('disabled', false);
-                    }
-                });
-            });
-
-            // Handle task completion
-            $(document).on('click', '.complete-task', function (event) {
-                var taskId = $(this).data('task-id');
-                $.ajax({
-                    url: '/complete/' + taskId,
-                    type: 'POST',
-                    success: function (response) {
-                        toastr.success('Task completed successfully');
-                        rerender();
-                        $('#taskTable').DataTable().draw(false)
-                    },
-                    error: function (xhr, status, error) {
-                        toastr.error('Error completing task');
-                    }
-                });
-            });
-
-            $(document).on('click', '.delete-task', function (event) {
-                var taskId = $(this).data('task-id');
-                $.ajax({
-                    url: '/delete/' + taskId,
-                    type: 'POST',
-                    success: function (response) {
-                        toastr.success('Task deleted successfully');
-                        rerender();
-                        $('#taskTable').DataTable().draw(false)
-                    },
-                    error: function (xhr, status, error) {
-                        toastr.error('Error deleting task');
-                    }
-                });
-            });
-        });
-    </script>
 </body>
 
 </html>

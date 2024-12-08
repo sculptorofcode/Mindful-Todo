@@ -149,3 +149,148 @@ window.rerender = function () {
         });
     });
 };
+
+
+$(document).ready(function () {
+    // Initialize datetime picker
+    $('.datetimepicker').datetimepicker({
+        format: 'd-m-Y H:i',
+        step: 30,
+        mask: true
+    });
+
+    // Initialize DataTables with server-side processing
+    $('#taskTable').DataTable({
+        processing: true,
+        serverSide: true,
+        responsive: true,
+        ajax: {
+            url: '/tasks', // The URL to fetch data
+            type: 'GET',
+            data: function (d) {
+                // Optional: you can add filters here if needed, e.g.:
+                // d.category = $('#filterCategory').val();
+            }
+        },
+        columns: [
+            { data: 'id', title: 'ID', visible: false },
+            { data: 'sl_no', title: 'S.No', orderable: false },
+            { data: 'name', title: 'Task', orderable: false },
+            {
+                data: 'category',
+                title: 'Category',
+                orderable: false,
+                render: function (data, type, row) {
+                    if (row.priority === 'High') {
+                        return `<span class="badge bg-danger">${data} (${row.priority})</span>`;
+                    } else if (row.priority === 'Medium') {
+                        return `<span class="badge bg-warning text-black">${data} (${row.priority})</span>`;
+                    }
+                    return `<span class="badge bg-primary">${data} (${row.priority})</span>`;
+                }
+            },
+            { data: 'due_date', title: 'Due Date', orderable: false },
+            {
+                data: 'id',
+                title: 'Actions',
+                orderable: false,
+                render: function (data, type, row) {
+                    if (row.is_completed) {
+                        return `<button class="btn btn-sm btn-danger delete-task" data-task-id="${data}" title="Delete task"><i class="fa fa-trash"></i></button>`;
+                    }
+                    return `
+                        <div class="d-flex gap-2" role="group">
+                            <button class="btn btn-sm btn-primary complete-task" data-task-id="${data}" title="Mark as complete"><i class="fa fa-check"></i></button>
+                            <button class="btn btn-sm btn-danger delete-task" data-task-id="${data}" title="Delete task"><i class="fa fa-trash"></i></button>
+                        </div>
+                    `;
+                }
+            },
+        ],
+        rowCallback: function (row, data) {
+            if (data.is_completed) {
+                $(row).addClass('table-success');
+            } else if (new Date(data.due_date) < new Date()) {
+                $(row).addClass('table-danger');
+            } else if (data.priority === 'high') {
+                $(row).addClass('table-danger');
+            } else if (data.priority === 'medium') {
+                $(row).addClass('table-warning');
+            } else {
+                $(row).addClass('table-light');
+            }
+        }
+    });
+
+    // Handle form submission to add a new task
+    $("#addTaskForm").submit(function (event) {
+        event.preventDefault();
+        $form = $(this);
+        var formData = {
+            name: $("#taskName").val(),
+            priority: $("#taskPriority").val(),
+            category: $("#taskCategory").val(),
+            due_date: $("#dueDate").val()
+        };
+
+        $.ajax({
+            url: '/add',
+            type: 'POST',
+            data: formData,
+            beforeSend: function () {
+                $("#taskFeedback").html('');
+                $form.find('button').prop('disabled', true);
+            },
+            success: function (response) {
+                $("#taskName").val('');
+                $("#taskPriority").val('low');
+                $("#taskCategory").val('personal');
+                $("#dueDate").val('');
+                toastr.success(response.message);
+                // Reload DataTable to reflect the new task
+                $('#taskTable').DataTable().draw(false)
+                rerender();
+            },
+            error: function (xhr, status, error) {
+                var errorMsg = xhr.responseJSON ? xhr.responseJSON.error : "An error occurred.";
+                toastr.error(errorMsg);
+            },
+            complete: function () {
+                $form.find('button').prop('disabled', false);
+            }
+        });
+    });
+
+    // Handle task completion
+    $(document).on('click', '.complete-task', function (event) {
+        var taskId = $(this).data('task-id');
+        $.ajax({
+            url: '/complete/' + taskId,
+            type: 'POST',
+            success: function (response) {
+                toastr.success('Task completed successfully');
+                rerender();
+                $('#taskTable').DataTable().draw(false)
+            },
+            error: function (xhr, status, error) {
+                toastr.error('Error completing task');
+            }
+        });
+    });
+
+    $(document).on('click', '.delete-task', function (event) {
+        var taskId = $(this).data('task-id');
+        $.ajax({
+            url: '/delete/' + taskId,
+            type: 'POST',
+            success: function (response) {
+                toastr.success('Task deleted successfully');
+                rerender();
+                $('#taskTable').DataTable().draw(false)
+            },
+            error: function (xhr, status, error) {
+                toastr.error('Error deleting task');
+            }
+        });
+    });
+});
