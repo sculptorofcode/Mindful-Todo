@@ -1,4 +1,4 @@
-from flask import jsonify, request, Blueprint
+from flask import jsonify, request, Blueprint, session
 from datetime import datetime, timedelta
 from models import Task  # Assuming Task model is already defined in models.py
 from sqlalchemy import func
@@ -24,9 +24,15 @@ def calculate_avg_completion_time(tasks):
     avg_time_hours = round(avg_time_seconds / 3600, 2)
     return avg_time_hours
 
+def get_user_id():
+    if 'user_id' not in session:
+        session['user_id'] = str(uuid.uuid4())  # Generate a new UUID if no user_id in session
+    return session['user_id']
+
 # Endpoint for analytics data
 @analytics_bp.route('/api/analytics', methods=['GET'])
 def analytics():
+    user_id = get_user_id()
     try:
         # Get the time period (default: 7 days)
         days = int(request.args.get('days', 7))
@@ -34,6 +40,7 @@ def analytics():
 
         # Query tasks
         tasks_query = Task.query.filter(Task.created_at >= start_date)
+        tasks_query = tasks_query.filter(Task.user_id == user_id)
 
         # Total tasks
         total_tasks = tasks_query.count()
@@ -58,6 +65,7 @@ def analytics():
                 func.count().label('created_count'),
                 func.sum(case((Task.completed_date.isnot(None), 1), else_=0)).label('completed_count')
             )
+            .filter(Task.user_id == user_id)
             .filter(Task.completed_date >= start_date)
             .group_by(func.date(Task.completed_date))
             .order_by(func.date(Task.completed_date))
@@ -72,6 +80,7 @@ def analytics():
         category_distribution = (
             Task.query
             .with_entities(Task.category, func.count())
+            .filter(Task.user_id == user_id)
             .filter(Task.created_at >= start_date)
             .group_by(Task.category)
             .all()
@@ -85,6 +94,7 @@ def analytics():
         priority_analysis = (
             Task.query
             .with_entities(Task.priority, func.count())
+            .filter(Task.user_id == user_id)
             .filter(Task.created_at >= start_date)
             .group_by(Task.priority)
             .all()
@@ -99,6 +109,7 @@ def analytics():
                 func.extract('hour', Task.completed_date).label('hour'),
                 func.count()
             )
+            .filter(Task.user_id == user_id)
             .filter(Task.completed_date >= start_date)
             .group_by(func.extract('hour', Task.completed_date))
             .order_by(func.extract('hour', Task.completed_date))

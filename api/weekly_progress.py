@@ -1,8 +1,13 @@
-from flask import jsonify, Blueprint
+from flask import jsonify, Blueprint, session
 from datetime import datetime, timedelta
 from models import Task
 
 weekly_progress_bp = Blueprint('weekly_progress', __name__)
+
+def get_user_id():
+    if 'user_id' not in session:
+        session['user_id'] = str(uuid.uuid4())  # Generate a new UUID if no user_id in session
+    return session['user_id']
 
 @weekly_progress_bp.route('/api/weekly-progress', methods=['GET'])
 def get_weekly_progress():
@@ -11,7 +16,7 @@ def get_weekly_progress():
     
     tasks_completed = {(start_of_week + timedelta(days=i)).date(): 0 for i in range(7)}
     
-    tasks = Task.query.filter(Task.is_completed == True).all()
+    tasks = Task.query.filter(Task.is_completed == True).filter(Task.user_id == get_user_id()).all()
     
     for task in tasks:
         if task.completed_date:
