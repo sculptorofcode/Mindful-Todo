@@ -206,7 +206,7 @@ Distributed under the MIT License. See `LICENSE` file for more information.
 
 <div align="center">
 
-**[Website](https://mindful-todo.com)** • **[Documentation](https://docs.mindful-todo.com)** • **[Report Bug](https://github.com/CyberSaikat/mindful-todo/issues)** • **[Request Feature](https://github.com/CyberSaikat/mindful-todo/issues)**
+**[Website](https://github.com/CyberSaikat/mindful-todo)** • **[Documentation](https://github.com/CyberSaikat/mindful-todo)** • **[Report Bug](https://github.com/CyberSaikat/mindful-todo/issues)** • **[Request Feature](https://github.com/CyberSaikat/mindful-todo/issues)**
 
 Made with ❤️ by [Your Name]
 
