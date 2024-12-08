@@ -208,6 +208,6 @@ Distributed under the MIT License. See `LICENSE` file for more information.
 
 **[Website](https://mindful-todo.onrender.com/)** • **[Documentation](https://github.com/CyberSaikat/mindful-todo)** • **[Report Bug](https://github.com/CyberSaikat/mindful-todo/issues)** • **[Request Feature](https://github.com/CyberSaikat/mindful-todo/issues)**
 
-Made with ❤️ by [Your Name]
+Made with ❤️ by Saikat Roy
 
 </div>
