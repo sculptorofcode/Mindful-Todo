@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mindful Todo - Analytics</title>
+    <link href="static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="static/css/animate.min.css" rel="stylesheet">
+    <link href="static/css/jquery.dataTables.min.css" rel="stylesheet">
+    <link href="static/css/custom.css" rel="stylesheet">
+    <link href="static/css/all.min.css" rel="stylesheet">
+    <link href="static/css/toastr.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: var(--primary-color)">
+        <div class="container">
+            <a class="navbar-brand" href="/">✨ Mindful Todo</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">Analytics</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <!-- Time Period Filter -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <select class="form-select" id="timePeriodFilter">
+                    <option value="7">Last 7 Days</option>
+                    <option value="30">Last 30 Days</option>
+                    <option value="90">Last 90 Days</option>
+                    <option value="365">Last Year</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- First Row -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Total Tasks</h6>
+                        <h2 id="totalTasks" class="card-title">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Completion Rate</h6>
+                        <h2 id="completionRate" class="card-title">0%</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">On-time Completion</h6>
+                        <h2 id="onTimeRate" class="card-title">0%</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Avg. Completion Time</h6>
+                        <h2 id="avgCompletionTime" class="card-title">0h</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Second Row -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Task Completion Trend</h5>
+                        <div id="completionTrend" style="height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Category Distribution</h5>
+                        <div id="categoryDistribution" style="height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Third Row -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Priority Analysis</h5>
+                        <div id="priorityAnalysis" style="height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Daily Activity Pattern</h5>
+                        <div id="activityPattern" style="height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="static/js/jquery-3.7.1.min.js"></script>
+    <script src="static/js/bootstrap.bundle.min.js"></script>
+    <script src="static/js/apexcharts.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            let completionTrendChart, categoryDistributionChart, priorityAnalysisChart, activityPatternChart;
+
+            function updateAnalytics(days) {
+                $.get(`/api/analytics?days=${days}`, function (data) {
+                    // Update summary cards
+                    $('#totalTasks').text(data.total_tasks);
+                    $('#completionRate').text(data.completion_rate + '%');
+                    $('#onTimeRate').text(data.on_time_rate + '%');
+                    $('#avgCompletionTime').text(data.avg_completion_time + 'h');
+
+                    // Destroy and reinitialize Task Completion Trend chart
+                    if (completionTrendChart) completionTrendChart.destroy();
+                    completionTrendChart = new ApexCharts(document.querySelector("#completionTrend"), {
+                        series: [{
+                            name: 'Completed Tasks',
+                            data: data.completion_trend.completed
+                        }, {
+                            name: 'Created Tasks',
+                            data: data.completion_trend.created
+                        }],
+                        chart: {
+                            type: 'line',
+                            height: 300
+                        },
+                        xaxis: {
+                            categories: data.completion_trend.dates
+                        },
+                        stroke: {
+                            curve: 'smooth'
+                        }
+                    });
+                    completionTrendChart.render();
+
+                    // Destroy and reinitialize Category Distribution chart
+                    if (categoryDistributionChart) categoryDistributionChart.destroy();
+                    categoryDistributionChart = new ApexCharts(document.querySelector("#categoryDistribution"), {
+                        series: data.category_distribution.values,
+                        chart: {
+                            type: 'pie',
+                            height: 300
+                        },
+                        labels: data.category_distribution.categories
+                    });
+                    categoryDistributionChart.render();
+
+                    // Destroy and reinitialize Priority Analysis chart
+                    if (priorityAnalysisChart) priorityAnalysisChart.destroy();
+                    priorityAnalysisChart = new ApexCharts(document.querySelector("#priorityAnalysis"), {
+                        series: [{
+                            name: 'Tasks',
+                            data: data.priority_analysis.counts
+                        }],
+                        chart: {
+                            type: 'bar',
+                            height: 300
+                        },
+                        xaxis: {
+                            categories: data.priority_analysis.priorities
+                        }
+                    });
+                    priorityAnalysisChart.render();
+
+                    // Destroy and reinitialize Daily Activity Pattern chart
+                    if (activityPatternChart) activityPatternChart.destroy();
+                    activityPatternChart = new ApexCharts(document.querySelector("#activityPattern"), {
+                        series: [{
+                            name: 'Tasks Completed',
+                            data: data.activity_pattern.counts
+                        }],
+                        chart: {
+                            type: 'area',
+                            height: 300
+                        },
+                        xaxis: {
+                            categories: data.activity_pattern.hours
+                        },
+                        stroke: {
+                            curve: 'smooth'
+                        }
+                    });
+                    activityPatternChart.render();
+                });
+            }
+
+            // Initial load
+            updateAnalytics(7);
+
+            // Handle time period changes
+            $('#timePeriodFilter').change(function () {
+                updateAnalytics($(this).val());
+            });
+        });
+    </script>
+</body>
+
+</html>

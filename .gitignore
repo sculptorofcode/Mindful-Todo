@@ -1,0 +1,5 @@
+.env
+/todoApp
+__pycache__
+*.pyc
+db.sqlite3
