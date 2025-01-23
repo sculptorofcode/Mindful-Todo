@@ -1,7 +1,7 @@
 # ✨ Mindful Todo
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/CyberSaikat/mindful-todo/master/static/images/banner.png" alt="Leading Image" width="100%">
+  <img src="https://raw.githubusercontent.com/sculptorofcode/mindful-todo/master/static/images/banner.png" alt="Leading Image" width="100%">
 </p>
 
 > A modern task management application focused on mindful productivity and insightful analytics.
@@ -74,7 +74,7 @@ Virtual Environment
 1. **Clone & Setup**
 ```bash
 # Clone repository
-git clone https://github.com/CyberSaikat/mindful-todo.git
+git clone https://github.com/sculptorofcode/mindful-todo.git
 cd mindful-todo
 
 # Create virtual environment
@@ -206,7 +206,7 @@ Distributed under the MIT License. See `LICENSE` file for more information.
 
 <div align="center">
 
-**[Website](https://mindful-todo.onrender.com/)** • **[Documentation](https://github.com/CyberSaikat/mindful-todo)** • **[Report Bug](https://github.com/CyberSaikat/mindful-todo/issues)** • **[Request Feature](https://github.com/CyberSaikat/mindful-todo/issues)**
+**[Website](https://mindful-todo.onrender.com/)** • **[Documentation](https://github.com/sculptorofcode/mindful-todo)** • **[Report Bug](https://github.com/sculptorofcode/mindful-todo/issues)** • **[Request Feature](https://github.com/sculptorofcode/mindful-todo/issues)**
 
 Made with ❤️ by Saikat Roy
 
