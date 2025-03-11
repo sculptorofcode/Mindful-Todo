@@ -6,6 +6,8 @@ from models import Task, db
 from flask_migrate import Migrate
 import werkzeug
 from datetime import datetime
+import requests
+from apscheduler.schedulers.background import BackgroundScheduler
 
 from api.productivity_hours import productivity_hours_bp
 from api.task_distribution import task_distribution_bp
@@ -30,6 +32,19 @@ app.register_blueprint(productivity_hours_bp)
 app.register_blueprint(task_distribution_bp)
 app.register_blueprint(weekly_progress_bp)
 app.register_blueprint(analytics_bp)
+
+# Scheduler to ping the website
+def ping_website():
+    try:
+        requests.get('https://mindful-todo.onrender.com')
+        Task.query.get(1)  # Query the database to check if it's working
+        print("Website pinged successfully")
+    except requests.exceptions.RequestException as e:
+        print(f"Error pinging website: {e}")
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(ping_website, 'interval', minutes=5)
+scheduler.start()
 
 def input_date(date):
     return datetime.strptime(date, '%d-%m-%Y %H:%M') if date else None
