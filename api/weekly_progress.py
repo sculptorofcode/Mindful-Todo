@@ -1,3 +1,4 @@
+import uuid
 from flask import jsonify, Blueprint, session
 from datetime import datetime, timedelta
 from models import Task
