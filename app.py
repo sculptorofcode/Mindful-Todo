@@ -33,21 +33,6 @@ app.register_blueprint(task_distribution_bp)
 app.register_blueprint(weekly_progress_bp)
 app.register_blueprint(analytics_bp)
 
-# Scheduler to ping the website
-# Scheduler to ping the website
-def ping_website():
-    with app.app_context():
-        try:
-            requests.get('https://mindful-todo.onrender.com')
-            Task.query.get(1)  # Query the database to check if it's working
-            print("Website pinged successfully")
-        except requests.exceptions.RequestException as e:
-            print(f"Error pinging website: {e}")
-
-scheduler = BackgroundScheduler()
-scheduler.add_job(ping_website, 'interval', minutes=10)
-scheduler.start()
-
 def input_date(date):
     return datetime.strptime(date, '%d-%m-%Y %H:%M') if date else None
 
